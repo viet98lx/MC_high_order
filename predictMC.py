@@ -39,7 +39,7 @@ if __name__ == '__main__':
     nb_test = len(test_instances)
 
     if w_behavior_file is None:
-        w_behavior = {'buy': 1, 'cart': 0.5, 'fav': 0.5, 'pv': 0.5}
+        w_behavior = {'buy': 1, 'cart': 1, 'fav': 1, 'pv': 1}
     else:
         with open(w_behavior_file, 'r') as fp:
             w_behavior = json.load(fp)

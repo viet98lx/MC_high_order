@@ -55,12 +55,30 @@ if __name__ == '__main__':
     MAX_SEQ_LENGTH, item_dict, reversed_item_dict, item_probs, item_freq_dict, user_dict = MC_utils.build_knowledge(train_instances+test_instances, w_behavior)
     print('Build knowledge done')
     list_transition_matrix = MC_utils.calculate_transition_matrix(train_instances, item_dict, item_freq_dict, reversed_item_dict, w_behavior, mc_order)
+
+    if not os.path.exists(o_dir):
+        os.makedirs(o_dir)
+
+    item_dict_file = os.path.join(o_dir, 'item_dict.json')
+    with open(item_dict_file, 'w') as fp:
+        json.dump(item_dict, fp)
+
+    reversed_item_dict_file = os.path.join(o_dir, 'reversed_item_dict.json')
+    with open(reversed_item_dict_file, 'w') as fp:
+        json.dump(reversed_item_dict, fp)
+
+    item_freq_dict_file = os.path.join(o_dir, 'item_freq_dict.json')
+    with open(item_freq_dict_file, 'w') as fp:
+        json.dump(item_freq_dict, fp)
+
+    w_behavior_path = os.path.join(o_dir, 'w_behavior.json')
+    with open(w_behavior_path, 'w') as fp:
+        json.dump(w_behavior, fp)
+
     for i in range(len(list_transition_matrix)):
         sp_matrix_path = model_name+'_transition_matrix_MC_'+str(i+1)+ '.npz'
         # nb_item = len(item_dict)
         # print('Density : %.6f' % (transition_matrix.nnz * 1.0 / nb_item / nb_item))
-        if not os.path.exists(o_dir):
-            os.makedirs(o_dir)
         saved_file = os.path.join(o_dir, sp_matrix_path)
         print("Save model in ", saved_file)
         sp.save_npz(saved_file, list_transition_matrix[i])
