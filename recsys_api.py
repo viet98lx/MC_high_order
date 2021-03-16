@@ -1,5 +1,4 @@
 from flask import Flask, request, render_template, jsonify
-from elasticsearch import Elasticsearch
 import scipy.sparse as sp
 import MC_utils
 import glob
@@ -8,52 +7,37 @@ import pandas as pd
 from time import sleep, time
 import json
 from datetime import date
-import os
-import requests
+import pickle
+import heapq
 
-es = Elasticsearch(hosts='localhost:9200')
+# es = Elasticsearch(hosts='localhost:9200')
 app = Flask(__name__)
 transaction_df = pd.read_csv('data/seqrec_sample_large.csv', nrows=150000)
 
 def load_model(model_folder):
-    trans_matrix_path = glob.glob(model_folder + "*.npz")
-    list_trans_matrix = []
-    for trans_matrix_path in trans_matrix_path:
-        list_trans_matrix.append(sp.load_npz(trans_matrix_path))
-    mc_order = len(list_trans_matrix)
-
-    item_dict_path = model_folder + '/item_dict.json'
-    with open(item_dict_path, 'r') as fp:
-        item_dict = json.load(fp)
-
-    item_freq_dict_path = model_folder + '/item_freq_dict.json'
-    with open(item_freq_dict_path, 'r') as fp:
-        item_freq_dict = json.load(fp)
-
-    reversed_item_dict_path = model_folder + '/reversed_item_dict.json'
-    with open(reversed_item_dict_path, 'r') as fp:
-        reversed_item_dict = json.load(fp)
-
-    w_behavior_file = model_folder + '/w_behavior.json'
-    with open(w_behavior_file, 'r') as fp:
-        w_behavior = json.load(fp)
-    mc_model = MarkovChain(item_dict, reversed_item_dict, item_freq_dict, w_behavior, list_trans_matrix, mc_order)
-    return mc_model
+    with open(model_folder+'/mc_model.pkl', 'rb') as input:
+        restored_model = pickle.load(input)
+    return restored_model
 
 def recommend(mc_model, bseq):
     previous_basket = []
+    item_dict = mc_model.item_dict
+    item_freq_dict = mc_model.item_freq_dict
+    print(len(bseq))
     for basket in bseq:
         for item in basket:
-            if item in mc_model.item_dict:
+            if item in item_dict:
                 previous_basket += item
     topk = 10
     print("len of last basket", len(previous_basket))
     try:
         list_result = mc_model.top_predicted_item(previous_basket, topk)
     except:
-        popular_dict = dict(sorted(mc_model.item_freq_dict.items(), key=lambda item: item[1], reverse=True))
-        list_recommend = list(popular_dict.keys())[:topk]
-        list_score = [popular_dict[item] for item in list_recommend]
+        # popular_dict = dict(sorted(mc_model.item_freq_dict.items(), key=lambda item: item[1], reverse=True))
+        list_recommend = heapq.nlargest(topk, item_freq_dict, key=item_freq_dict.get)
+        # list_recommend = list(popular_dict.keys())[:topk]
+        sum_freq = sum(list(item_freq_dict.values()))
+        list_score = [item_freq_dict[item]/sum_freq for item in list_recommend]
         list_rank = [i for i in range(1, len(list_recommend) + 1)]
         list_result = []
         for j in range(0, len(list_recommend)):
@@ -63,13 +47,15 @@ def recommend(mc_model, bseq):
     return list_result
 def filter_data(task, data_df):
     list_item_groupby_date_df = data_df.groupby(['user_id', 'date'])['item_id'].apply(list).reset_index(name='list_item')
-    list_behavior_groupby_date_df = data_df.groupby(['user_id', 'date'])['behavior'].apply(list).reset_index(name='list_behavior')
+    list_behavior_groupby_date_df = data_df.groupby(['date'])['behavior'].apply(list).reset_index(name='list_behavior')
+    print(list_behavior_groupby_date_df)
     bseq = []
     for i in range(len(list_item_groupby_date_df)):
         list_item = list_item_groupby_date_df.loc[i, "list_item"]
         list_behavior = list_behavior_groupby_date_df.loc[i, "list_behavior"]
         list_pair = []
         for i, b in zip(list_item, list_behavior):
+            print(b)
             if task == 1 and (b == 'cart' or b == 'buy'):
                 list_pair += [i]
             if task == 2 and b != 'buy':

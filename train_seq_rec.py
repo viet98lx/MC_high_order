@@ -10,7 +10,7 @@ import scipy.sparse as sp
 import os
 import json
 
-def train_model(train_instances, model_name, o_dir):
+def train_MC_model(train_instances, model_name, o_dir):
     w_behavior = {'buy': 1, 'cart': 1, 'fav': 1, 'pv': 1}
     print("---------------------@Build knowledge-------------------------------")
     MAX_SEQ_LENGTH, item_dict, reversed_item_dict, item_probs, item_freq_dict, user_dict = MC_utils.build_knowledge(
@@ -105,24 +105,28 @@ def filter_target_behavior(lines, mc_order, target_behavior, filter_string):
                 filtered_lines.append(filtered_line)
     return filtered_lines
 
+def preprocess_df(u_behavior_df):
+    new_behavior_df = u_behavior_df.sort_values(['user_id', 'date']).drop(['category_id'], axis=1)
+    new_behavior_df['pair_ib'] = new_behavior_df[['item_id', 'behavior']].apply(tuple, axis=1)
+    new_behavior_df.drop(['item_id', 'behavior'], axis=1, inplace=True)
+    groupby_date_df = new_behavior_df.groupby(['user_id', 'date'])['pair_ib'].apply(list).reset_index(name='list ib')
+    return groupby_date_df
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_dir', help='The directory of input', type=str, default='../data/')
     parser.add_argument('--output_dir', help='The directory of output', type=str, default='../saved_models/')
     parser.add_argument('--target_behavior', help='Target behavior', type=str, default='buy')
+    parser.add_argument('--type_model', help='Target behavior', type=str, default='mc')
 
     args = parser.parse_args()
-
     data_dir = args.input_dir
     o_dir = args.output_dir
     target_behavior = args.target_behavior
     csv_file = glob.glob(data_dir+'*.csv')
     # u_behavior_df = pd.read_csv(csv_file, nrows=1000, names=['user_id', 'item_id', 'category_id', 'behavior', 'time_stamp'])
     u_behavior_df = pd.read_csv(csv_file)
-    new_behavior_df = u_behavior_df.sort_values(['user_id', 'date']).drop(['category_id'], axis=1)
-    new_behavior_df['pair_ib'] = new_behavior_df[['item_id', 'behavior']].apply(tuple, axis=1)
-    new_behavior_df.drop(['item_id', 'behavior'], axis=1, inplace=True)
-    groupby_date_df = new_behavior_df.groupby(['user_id', 'date'])['pair_ib'].apply(list).reset_index(name='list ib')
+    groupby_date_df = preprocess_df(u_behavior_df)
     raw_lines = create_lines_from_df(groupby_date_df)
     mc_order = 1
 
@@ -131,19 +135,19 @@ if __name__ == '__main__':
         filter_string = '[\\s][0-9]+:fav|[\\s][0-9]+:buy'
         filtered_lines = filter_target_behavior(raw_lines, mc_order, target_behavior, filter_string)
         model_name = 'buy_seqrec'
-        train_model(filtered_lines, model_name, o_dir)
+        train_MC_model(filtered_lines, model_name, o_dir)
     # model for recommend cart target
     elif target_behavior == 'cart':
         filter_string = '[\\s][0-9]+:buy'
         filtered_lines = filter_target_behavior(raw_lines, mc_order, target_behavior, filter_string)
         model_name = 'cart_seqrec'
-        train_model(filtered_lines, model_name, o_dir)
+        train_MC_model(filtered_lines, model_name, o_dir)
     # model for recommend pv target
     elif target_behavior == 'pv':
         filter_string = '[\\s][0-9]+:buy|[\\s][0-9]+:fav|[\\s][0-9]+:cart'
         filtered_lines = filter_target_behavior(raw_lines, mc_order, target_behavior, filter_string)
         model_name = 'pv_seqrec'
-        train_model(filtered_lines, model_name, o_dir)
+        train_MC_model(filtered_lines, model_name, o_dir)
     else:
         print("Don't use this behavior")
         sys.exit(0)
