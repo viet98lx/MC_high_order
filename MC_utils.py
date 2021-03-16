@@ -3,6 +3,7 @@ import scipy.sparse as sp
 import re
 import numpy as np
 import time
+import pickle
 
 def calculate_transition_matrix(train_instances, item_dict, item_freq_dict, reversed_item_dict, w_behavior, mc_order):
   pair_dict = dict()
@@ -150,3 +151,12 @@ def read_instances_lines_from_file(file_path):
     with open(file_path, "r") as f:
         lines = [line.rstrip('\n') for line in f]
         return lines
+
+def save_model(model, save_path):
+    with open(save_path, 'wb') as output:
+        pickle.dump(model, output, pickle.HIGHEST_PROTOCOL)
+
+def load_model(save_path):
+    with open(save_path, 'rb') as input:
+        restored_model = pickle.load(input)
+    return restored_model

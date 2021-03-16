@@ -59,42 +59,44 @@ if __name__ == '__main__':
     if not os.path.exists(o_dir):
         os.makedirs(o_dir)
 
-    item_dict_file = os.path.join(o_dir, 'item_dict.json')
-    with open(item_dict_file, 'w') as fp:
-        json.dump(item_dict, fp)
+    # item_dict_file = os.path.join(o_dir, 'item_dict.json')
+    # with open(item_dict_file, 'w') as fp:
+    #     json.dump(item_dict, fp)
+    #
+    # reversed_item_dict_file = os.path.join(o_dir, 'reversed_item_dict.json')
+    # with open(reversed_item_dict_file, 'w') as fp:
+    #     json.dump(reversed_item_dict, fp)
+    #
+    # item_freq_dict_file = os.path.join(o_dir, 'item_freq_dict.json')
+    # with open(item_freq_dict_file, 'w') as fp:
+    #     json.dump(item_freq_dict, fp)
+    #
+    # w_behavior_path = os.path.join(o_dir, 'w_behavior.json')
+    # with open(w_behavior_path, 'w') as fp:
+    #     json.dump(w_behavior, fp)
 
-    reversed_item_dict_file = os.path.join(o_dir, 'reversed_item_dict.json')
-    with open(reversed_item_dict_file, 'w') as fp:
-        json.dump(reversed_item_dict, fp)
-
-    item_freq_dict_file = os.path.join(o_dir, 'item_freq_dict.json')
-    with open(item_freq_dict_file, 'w') as fp:
-        json.dump(item_freq_dict, fp)
-
-    w_behavior_path = os.path.join(o_dir, 'w_behavior.json')
-    with open(w_behavior_path, 'w') as fp:
-        json.dump(w_behavior, fp)
-
-    for i in range(len(list_transition_matrix)):
-        sp_matrix_path = model_name+'_transition_matrix_MC_'+str(i+1)+ '.npz'
-        # nb_item = len(item_dict)
-        # print('Density : %.6f' % (transition_matrix.nnz * 1.0 / nb_item / nb_item))
-        saved_file = os.path.join(o_dir, sp_matrix_path)
-        print("Save model in ", saved_file)
-        sp.save_npz(saved_file, list_transition_matrix[i])
+    # for i in range(len(list_transition_matrix)):
+    #     sp_matrix_path = model_name+'_transition_matrix_MC_'+str(i+1)+ '.npz'
+    #     # nb_item = len(item_dict)
+    #     # print('Density : %.6f' % (transition_matrix.nnz * 1.0 / nb_item / nb_item))
+    #     saved_file = os.path.join(o_dir, sp_matrix_path)
+    #     print("Save model in ", saved_file)
+    #     sp.save_npz(saved_file, list_transition_matrix[i])
 
     mc_model = MarkovChain(item_dict, reversed_item_dict, item_freq_dict, w_behavior, list_transition_matrix, mc_order)
-    topk = 50
-    print('Predict to outfile')
-    predict_file = os.path.join(o_dir, 'predict_'+model_name+'.txt')
-    MC_utils.write_predict(predict_file, test_instances, topk, mc_model)
-    print('Predict done')
-    ground_truth, predict = MC_utils.read_predict(predict_file)
-    for topk in [5, 10, 15, 20]:
-        print("Top : ", topk)
-        # hit_rate = MC_hit_ratio(test_instances, topk, mc_model)
-        # recall = MC_recall(test_instances, topk, mc_model)
-        hit_rate = MC_utils.hit_ratio(ground_truth, predict, topk)
-        recall = MC_utils.recall(ground_truth, predict, topk)
-        print("hit ratio: ", hit_rate)
-        print("recall: ", recall)
+    save_path = o_dir + '/' + model_name + '.pkl'
+    MC_utils.save_model(mc_model, save_path)
+    # topk = 50
+    # print('Predict to outfile')
+    # predict_file = os.path.join(o_dir, 'predict_'+model_name+'.txt')
+    # MC_utils.write_predict(predict_file, test_instances, topk, mc_model)
+    # print('Predict done')
+    # ground_truth, predict = MC_utils.read_predict(predict_file)
+    # for topk in [5, 10, 15, 20]:
+    #     print("Top : ", topk)
+    #     # hit_rate = MC_hit_ratio(test_instances, topk, mc_model)
+    #     # recall = MC_recall(test_instances, topk, mc_model)
+    #     hit_rate = MC_utils.hit_ratio(ground_truth, predict, topk)
+    #     recall = MC_utils.recall(ground_truth, predict, topk)
+    #     print("hit ratio: ", hit_rate)
+    #     print("recall: ", recall)
