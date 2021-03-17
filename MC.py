@@ -40,3 +40,20 @@ class MarkovChain():
     sorted_topk_idx = topk_idx[np.argsort(total_score[topk_idx])]
     topk_item = [self.reversed_item_dict[item] for item in sorted_topk_idx]
     return topk_item
+
+  def top_predicted_mc_order_with_score(self, previous_baskets, topk):
+    total_score = np.zeros(self.nb_items)
+    nb_previous_basket = len(previous_baskets)
+    # combine_idx = []
+    # combine_score = []
+    for i in range(nb_previous_basket - 1, -1, -1):
+      prev_basket_idx = [self.item_dict[item] for item in previous_baskets[i]]
+      candidate = np.array(self.list_transition_matrix[nb_previous_basket-i-1][prev_basket_idx, :].todense().sum(axis=0))[0]
+      candidate = candidate / len(prev_basket_idx)
+      total_score += candidate
+
+    topk_idx = np.argpartition(total_score, -topk)[-topk:]
+    sorted_topk_idx = topk_idx[np.argsort(total_score[topk_idx])]
+    topk_score = total_score[sorted_topk_idx]
+    topk_item = [self.reversed_item_dict[item] for item in sorted_topk_idx]
+    return topk_item, topk_score
