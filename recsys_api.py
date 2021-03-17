@@ -19,7 +19,7 @@ def load_model(model_folder):
         restored_model = pickle.load(input)
     return restored_model
 
-def recommend(mc_model, bseq):
+def recommend(mc_model, bseq, topk):
     previous_basket = []
     item_dict = mc_model.item_dict
     item_freq_dict = mc_model.item_freq_dict
@@ -28,7 +28,7 @@ def recommend(mc_model, bseq):
         for item in basket:
             if item in item_dict:
                 previous_basket += item
-    topk = 10
+    # topk = 10
     print("len of last basket", len(previous_basket))
     try:
         list_result = mc_model.top_predicted_item(previous_basket, topk)
@@ -72,6 +72,7 @@ def recommend_list_item():
     user_seq_df = transaction_df[transaction_df["user_id"] == customer_id]
     sort_user_seq_df = user_seq_df.sort_values(['user_id', 'date'])
 
+    topk = int(request.args.get('topk'))
     task = int(request.args.get('task'))
     print(type(task))
     if task == 1: # recommend buy target
@@ -88,7 +89,7 @@ def recommend_list_item():
         # mc_model = load_model(model_folder)
     bseq = filter_data(task, sort_user_seq_df)
     mc_model = load_model(model_folder)
-    list_result = recommend(mc_model, bseq)
+    list_result = recommend(mc_model, bseq, topk)
     response = {"items" : list_result,
                 "time" : date.today(),
                 "message": "recommend most frequent item",
