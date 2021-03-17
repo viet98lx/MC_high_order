@@ -154,7 +154,7 @@ def read_instances_lines_from_file(file_path):
 
 def save_model(model, save_path):
     with open(save_path, 'wb') as output:
-        pickle.dump(model, output, pickle.DEFAULT_PROTOCOL)
+        pickle.dump(model, output, 3)
 
 def load_model(save_path):
     with open(save_path, 'rb') as input:
