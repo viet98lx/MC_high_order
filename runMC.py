@@ -52,7 +52,7 @@ if __name__ == '__main__':
     ### build knowledge ###
     # common_instances = train_instances + test_instances
     print("---------------------@Build knowledge-------------------------------")
-    MAX_SEQ_LENGTH, item_dict, reversed_item_dict, item_probs, item_freq_dict, user_dict = MC_utils.build_knowledge(train_instances+test_instances, w_behavior)
+    MAX_SEQ_LENGTH, item_dict, reversed_item_dict, item_probs, item_freq_dict, user_dict = MC_utils.build_knowledge(train_instances, test_instances, w_behavior)
     print('Build knowledge done')
     list_transition_matrix = MC_utils.calculate_transition_matrix(train_instances, item_dict, item_freq_dict, reversed_item_dict, w_behavior, mc_order)
 
@@ -86,17 +86,17 @@ if __name__ == '__main__':
     mc_model = MarkovChain(item_dict, reversed_item_dict, item_freq_dict, w_behavior, list_transition_matrix, mc_order)
     save_path = o_dir + '/' + model_name + '.pkl'
     MC_utils.save_model(mc_model, save_path)
-    # topk = 50
-    # print('Predict to outfile')
-    # predict_file = os.path.join(o_dir, 'predict_'+model_name+'.txt')
-    # MC_utils.write_predict(predict_file, test_instances, topk, mc_model)
-    # print('Predict done')
-    # ground_truth, predict = MC_utils.read_predict(predict_file)
-    # for topk in [5, 10, 15, 20]:
-    #     print("Top : ", topk)
-    #     # hit_rate = MC_hit_ratio(test_instances, topk, mc_model)
-    #     # recall = MC_recall(test_instances, topk, mc_model)
-    #     hit_rate = MC_utils.hit_ratio(ground_truth, predict, topk)
-    #     recall = MC_utils.recall(ground_truth, predict, topk)
-    #     print("hit ratio: ", hit_rate)
-    #     print("recall: ", recall)
+    topk = 50
+    print('Predict to outfile')
+    predict_file = os.path.join(o_dir, 'predict_'+model_name+'.txt')
+    MC_utils.write_predict(predict_file, test_instances, topk, mc_model)
+    print('Predict done')
+    ground_truth, predict = MC_utils.read_predict(predict_file)
+    for topk in [5, 10, 15, 20]:
+        print("Top : ", topk)
+        # hit_rate = MC_hit_ratio(test_instances, topk, mc_model)
+        # recall = MC_recall(test_instances, topk, mc_model)
+        hit_rate = MC_utils.hit_ratio(ground_truth, predict, topk)
+        recall = MC_utils.recall(ground_truth, predict, topk)
+        print("hit ratio: ", hit_rate)
+        print("recall: ", recall)
