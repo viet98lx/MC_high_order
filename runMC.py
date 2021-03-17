@@ -92,7 +92,7 @@ if __name__ == '__main__':
     MC_utils.write_predict(predict_file, test_instances, topk, mc_model)
     print('Predict done')
     ground_truth, predict = MC_utils.read_predict(predict_file)
-    for topk in [5, 10, 15, 20]:
+    for topk in [5, 10, 15]:
         print("Top : ", topk)
         # hit_rate = MC_hit_ratio(test_instances, topk, mc_model)
         # recall = MC_recall(test_instances, topk, mc_model)
