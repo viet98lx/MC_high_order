@@ -75,13 +75,13 @@ if __name__ == '__main__':
     # with open(w_behavior_path, 'w') as fp:
     #     json.dump(w_behavior, fp)
 
-    # for i in range(len(list_transition_matrix)):
-    #     sp_matrix_path = model_name+'_transition_matrix_MC_'+str(i+1)+ '.npz'
-    #     # nb_item = len(item_dict)
-    #     # print('Density : %.6f' % (transition_matrix.nnz * 1.0 / nb_item / nb_item))
-    #     saved_file = os.path.join(o_dir, sp_matrix_path)
-    #     print("Save model in ", saved_file)
-    #     sp.save_npz(saved_file, list_transition_matrix[i])
+    for i in range(len(list_transition_matrix)):
+        sp_matrix_path = model_name+'_transition_matrix_MC_'+str(i+1)+ '.npz'
+        # nb_item = len(item_dict)
+        # print('Density : %.6f' % (transition_matrix.nnz * 1.0 / nb_item / nb_item))
+        saved_file = os.path.join(o_dir, sp_matrix_path)
+        print("Save model in ", saved_file)
+        sp.save_npz(saved_file, list_transition_matrix[i])
 
     mc_model = MarkovChain(item_dict, reversed_item_dict, item_freq_dict, w_behavior, list_transition_matrix, mc_order)
     save_path = o_dir + '/' + model_name + '.pkl'
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     MC_utils.write_predict(predict_file, test_instances, topk, mc_model)
     print('Predict done')
     ground_truth, predict = MC_utils.read_predict(predict_file)
-    for topk in [5, 10, 15]:
+    for topk in [5, 10, 15, 20]:
         print("Top : ", topk)
         # hit_rate = MC_hit_ratio(test_instances, topk, mc_model)
         # recall = MC_recall(test_instances, topk, mc_model)

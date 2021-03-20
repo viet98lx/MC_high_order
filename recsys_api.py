@@ -20,18 +20,25 @@ def load_model(model_folder):
     return restored_model
 
 def recommend(mc_model, bseq, topk):
-    previous_basket = []
+    previous_baskets = []
     item_dict = mc_model.item_dict
     item_freq_dict = mc_model.item_freq_dict
-    print(len(bseq))
-    for basket in bseq:
-        for item in basket:
-            if item in item_dict:
-                previous_basket += item
-    # topk = 10
-    print("len of last basket", len(previous_basket))
+    # print(len(bseq))
+    # for basket in bseq:
     try:
-        list_result = mc_model.top_predicted_item(previous_basket, topk)
+        last_basket = []
+        for item in bseq[-1]:
+            if item in item_dict:
+                last_basket += item
+        previous_baskets.append(last_basket)
+    # topk = 10
+    # print("len of last basket", len(previous_basket))
+        list_recommend, list_score = mc_model.top_predicted_mc_order_with_score(previous_baskets, topk)
+        list_rank = [i for i in range(1, len(list_recommend) + 1)]
+        list_result = []
+        for j in range(0, len(list_recommend)):
+            tup = (list_recommend[j], list_score[j], list_rank[j])
+            list_result.append(tup)
     except:
         # popular_dict = dict(sorted(mc_model.item_freq_dict.items(), key=lambda item: item[1], reverse=True))
         list_recommend = heapq.nlargest(topk, item_freq_dict, key=item_freq_dict.get)
@@ -55,7 +62,7 @@ def filter_data(task, data_df):
         list_behavior = list_behavior_groupby_date_df.loc[i, "list_behavior"]
         list_pair = []
         for i, b in zip(list_item, list_behavior):
-            print(b)
+            # print(b)
             if task == 1 and (b == 'cart' or b == 'buy'):
                 list_pair += [i]
             if task == 2 and b != 'buy':
